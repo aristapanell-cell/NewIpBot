@@ -91,6 +91,7 @@ class TelegramSender:
             raise ValueError("BOT_TOKEN is required")
         self.api = f"https://api.telegram.org/bot{token}"
         self.chat_id = chat_id
+        self.pending_copies = {}
 
     def send_message(self, text: str, reply_markup=None) -> bool:
         try:
@@ -114,10 +115,12 @@ class TelegramSender:
 
     def create_copy_button(self, ips: List[str]) -> dict:
         ips_text = "\n".join(ips)
+        copy_id = hashlib.md5(ips_text.encode()).hexdigest()[:16]
+        self.pending_copies[copy_id] = ips_text
         return {
             "inline_keyboard": [[{
                 "text": "📋 کپی همه آی‌پی‌ها",
-                "callback_data": f"copy_{hashlib.md5(ips_text.encode()).hexdigest()[:16]}"
+                "callback_data": f"copy_{copy_id}"
             }]]
         }
 
@@ -143,6 +146,31 @@ class TelegramSender:
         if not ips:
             return False
         return self.send_message(self.create_caption(ips), self.create_copy_button(ips))
+
+    def handle_callback(self, callback_data: str, callback_query_id: str) -> bool:
+        if callback_data.startswith("copy_"):
+            copy_id = callback_data[5:]
+            if copy_id in self.pending_copies:
+                ips_text = self.pending_copies[copy_id]
+                try:
+                    answer_url = self.api + "/answerCallbackQuery"
+                    requests.post(answer_url, json={
+                        "callback_query_id": callback_query_id,
+                        "text": "✅ آی‌پی‌ها کپی شدند!",
+                        "show_alert": False
+                    }, timeout=10)
+                    
+                    edit_url = self.api + "/editMessageReplyMarkup"
+                    requests.post(edit_url, json={
+                        "chat_id": self.chat_id,
+                        "message_id": None,
+                        "reply_markup": {"inline_keyboard": []}
+                    }, timeout=10)
+                    return True
+                except Exception as e:
+                    logger.error(f"Callback error: {e}")
+                    return False
+        return False
 
 class IPScheduler:
     def __init__(self):

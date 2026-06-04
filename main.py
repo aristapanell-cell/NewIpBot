@@ -110,7 +110,7 @@ class TelegramSender:
 
     def format_ips_block(self, ips: List[str]) -> str:
         ips_text = "\n".join([f"<code>{ip}</code>" for ip in ips])
-        return f"<pre>{ips_text}</pre>"
+        return f"<blockquote expandable>{ips_text}</blockquote>"
 
     def create_caption(self, ips: List[str]) -> str:
         ips_block = self.format_ips_block(ips)

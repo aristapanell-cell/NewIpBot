@@ -110,7 +110,7 @@ class TelegramSender:
 
     def format_ips_block(self, ips: List[str]) -> str:
         ips_text = "\n".join([f"<code>{ip}</code>" for ip in ips])
-        return f"<blockquote expandable>{ips_text}</blockquote>"
+        return f"<pre>{ips_text}</pre>"
 
     def create_caption(self, ips: List[str]) -> str:
         ips_block = self.format_ips_block(ips)
@@ -119,6 +119,7 @@ class TelegramSender:
 {ips_block}
 ➖➖➖➖➖➖➖➖
 👈 اگر به لیست آی‌‌پی متصل هستید بهش دست نزنید ، فقط زمانی‌که آی‌پی شما فیلتر شد یا از کار افتاد سراغ این آی‌پی‌های جدید بیایید و تست کنید.
+
 ‼️ <b>جهت جواب‌دهی هرچه بهتر، قبل از استفاده ipها رو کپی و با Vpn خاموش اسکن کنید.</b>
 
 🔹 <a href="https://t.me/aristapnel/34613?single">اسکنر اول</a>

@@ -29,6 +29,7 @@ class IPExtractor:
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
         })
         self.sent_ips = self.load_sent_history()
+        self.current_run_ips = set()
 
     def load_sent_history(self) -> Dict:
         if os.path.exists(SENT_HISTORY_FILE):
@@ -52,7 +53,9 @@ class IPExtractor:
     def is_ip_sent(self, ip: str) -> bool:
         h = hashlib.md5(ip.encode()).hexdigest()
         if h in self.sent_ips:
-            if datetime.now() - self.sent_ips[h] < timedelta(hours=24):
+            time_diff = datetime.now() - self.sent_ips[h]
+            if time_diff < timedelta(hours=24):
+                logger.debug(f"IP {ip} was sent {time_diff} ago, skipping")
                 return True
             else:
                 del self.sent_ips[h]
@@ -77,8 +80,14 @@ class IPExtractor:
                 ips = []
                 for line in response.text.splitlines():
                     ip = self.extract_ip_from_line(line)
-                    if ip and not self.is_ip_sent(ip):
+                    if ip:
+                        if ip in self.current_run_ips:
+                            logger.debug(f"Duplicate IP {ip} in same run, skipping")
+                            continue
+                        if self.is_ip_sent(ip):
+                            continue
                         ips.append(ip)
+                        self.current_run_ips.add(ip)
                 return ips
             return []
         except Exception as e:

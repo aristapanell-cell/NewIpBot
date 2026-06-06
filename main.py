@@ -135,7 +135,7 @@ class TelegramSender:
 🔹 <a href="https://t.me/aristapnel/34474">اسکنر دوم</a>
 🔹 <a href="https://t.me/aristapnel/35602">اسکنر سوم</a>
 ➖➖➖➖➖➖➖➖
-<blockquote>@aristapnel</blockquote>
+<blockquote>@aristapanel</blockquote>
 ➖➖➖➖➖➖➖➖
 #Arista #ip #clean_ip #ٱی‌پی_تمیز"""
 

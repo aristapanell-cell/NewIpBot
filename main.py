@@ -17,9 +17,9 @@ logger = logging.getLogger(__name__)
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 CHANNEL_ID = int(os.getenv("CHANNEL_ID", "-1002325683219"))
 
-SCANNER_URL = "https://raw.githubusercontent.com/new493370/MySccan/refs/heads/main/output/best_ips.txt"
+SCANNER_URL = "https://raw.githubusercontent.com/new493370/NewIp/refs/heads/main/output/best_ips.txt"
 MAX_IPS_PER_POST = 100
-MAX_POSTS_PER_RUN = 20
+MAX_POSTS_PER_RUN = 10
 SENT_HISTORY_FILE = "sent_ips.json"
 
 class IPExtractor:
@@ -124,6 +124,7 @@ class TelegramSender:
     def create_caption(self, ips: List[str]) -> str:
         ips_block = self.format_ips_block(ips)
         return f"""🅰️🆁🅸🆂🆃🅰️ 🅸🅿️
+<b>🔰 لیست آی‌پی جدید</b>
 ➖➖➖➖➖➖➖➖
 {ips_block}
 ➖➖➖➖➖➖➖➖

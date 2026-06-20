@@ -37,9 +37,10 @@ class IPExtractor:
         self.backup_file = SENT_HISTORY_FILE + ".backup"
         
         self.ensure_history_file()
-        
         self.sent_ips = self.load_sent_history()
         logger.info(f"Loaded {len(self.sent_ips)} IPs from history")
+        
+        self.cleanup_old_entries()
 
     def ensure_history_file(self):
         if not os.path.exists(self.history_file):
@@ -78,7 +79,6 @@ class IPExtractor:
                     except Exception as e2:
                         logger.error(f"Error loading backup file: {e2}")
         
-        self.ensure_history_file()
         return {}
 
     def save_sent_history(self):
@@ -100,21 +100,19 @@ class IPExtractor:
             
         except Exception as e:
             logger.error(f"Error saving history: {e}")
-            try:
-                temp_file = self.history_file + ".tmp"
-                with open(temp_file, 'w', encoding='utf-8') as f:
-                    json.dump({k: v.isoformat() for k, v in self.sent_ips.items()}, 
-                             f, ensure_ascii=False, indent=2)
-                os.rename(temp_file, self.history_file)
-                logger.info("Saved history using temporary file")
-            except Exception as e2:
-                logger.error(f"Could not save history even with temp file: {e2}")
+
+    def _get_ip_hash(self, ip: str) -> str:
+        return hashlib.md5(ip.encode()).hexdigest()
 
     def is_ip_sent(self, ip: str) -> bool:
-        h = hashlib.md5(ip.encode()).hexdigest()
+        ip_hash = self._get_ip_hash(ip)
         
-        if h in self.sent_ips:
-            time_sent = self.sent_ips[h]
+        if ip in self.current_run_ips:
+            logger.debug(f"IP {ip} already in current run")
+            return True
+        
+        if ip_hash in self.sent_ips:
+            time_sent = self.sent_ips[ip_hash]
             time_diff = datetime.now() - time_sent
             
             if time_diff < timedelta(hours=CACHE_EXPIRY_HOURS):
@@ -123,7 +121,7 @@ class IPExtractor:
                            f"remaining: {remaining:.1f} hours")
                 return True
             else:
-                del self.sent_ips[h]
+                del self.sent_ips[ip_hash]
                 self.save_sent_history()
                 logger.debug(f"IP {ip} expired from history, can be sent again")
                 return False
@@ -131,8 +129,9 @@ class IPExtractor:
         return False
 
     def mark_as_sent(self, ip: str):
-        h = hashlib.md5(ip.encode()).hexdigest()
-        self.sent_ips[h] = datetime.now()
+        ip_hash = self._get_ip_hash(ip)
+        self.sent_ips[ip_hash] = datetime.now()
+        self.current_run_ips.add(ip)
         self.save_sent_history()
         logger.debug(f"Marked IP {ip} as sent")
 
@@ -140,9 +139,9 @@ class IPExtractor:
         current_time = datetime.now()
         removed_count = 0
         
-        for h, sent_time in list(self.sent_ips.items()):
+        for ip_hash, sent_time in list(self.sent_ips.items()):
             if current_time - sent_time >= timedelta(hours=CACHE_EXPIRY_HOURS):
-                del self.sent_ips[h]
+                del self.sent_ips[ip_hash]
                 removed_count += 1
         
         if removed_count > 0:
@@ -172,6 +171,12 @@ class IPExtractor:
         ip = ip_port.split(':')[0]
         port = ip_port.split(':')[1]
         
+        parts_ip = ip.split('.')
+        if len(parts_ip) != 4:
+            return None
+        if not all(0 <= int(p) <= 255 for p in parts_ip):
+            return None
+        
         country = parts[8] if len(parts) > 8 else "Unknown"
         provider = parts[9] if len(parts) > 9 else "Unknown"
         
@@ -185,6 +190,8 @@ class IPExtractor:
     def fetch_ips(self) -> List[Dict]:
         try:
             self.cleanup_old_entries()
+            
+            self.current_run_ips = set()
             
             logger.info(f"Fetching IPs from: {SCANNER_URL}")
             response = self.session.get(SCANNER_URL, timeout=30)
@@ -202,16 +209,14 @@ class IPExtractor:
                         continue
                     
                     ip = ip_data["ip"]
+                    
                     if ip in unique_ips:
                         continue
                     unique_ips.add(ip)
                     
-                    if ip in self.current_run_ips:
-                        continue
-                        
                     if self.is_ip_sent(ip):
                         continue
-                        
+                    
                     new_ips.append(ip_data)
                     self.current_run_ips.add(ip)
                 
@@ -241,6 +246,7 @@ class IPExtractor:
             'file_exists': os.path.exists(self.history_file),
             'backup_exists': os.path.exists(self.backup_file)
         }
+
 
 class TelegramSender:
     def __init__(self, token: str, chat_id: int):
@@ -311,7 +317,7 @@ class TelegramSender:
         country_block = "\n".join(country_lines) if country_lines else ""
         
         return f"""🅰️🆁🅸🆂🆃🅰️ 🅸🅿️
-<b>🔰 لیست آی‌پی جدید</b>
+<b>🔰 لیست آی‌پی جدید ({len(ips)} IP)</b>
 ➖➖➖➖➖➖➖➖
 {ips_block}
 ➖➖➖➖➖➖➖➖
@@ -332,6 +338,7 @@ class TelegramSender:
         if not ips:
             return False
         return self.send_message(self.create_caption(ips))
+
 
 class IPScheduler:
     def __init__(self):
@@ -385,6 +392,7 @@ class IPScheduler:
         except Exception as e:
             logger.error(f"Error in run: {e}")
             raise
+
 
 def main():
     try:

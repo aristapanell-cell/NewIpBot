@@ -307,7 +307,7 @@ class TelegramSender:
             for country, count in sorted(country_stats.items(), key=lambda x: x[1], reverse=True):
                 country_lines.append(f"<blockquote expandable>📍 {country}: {count} IP</blockquote>")
         
-        ip_list = [f"{ip['ip']}:{ip['port']}" for ip in ips]
+        ip_list = [ip["ip"] for ip in ips]
         ips_block = self.format_ips_block(ip_list)
         country_block = "\n".join(country_lines) if country_lines else ""
         

@@ -1,3 +1,4 @@
+# main.py
 import requests
 import re
 import json
@@ -8,6 +9,7 @@ from datetime import datetime, timedelta
 from typing import List, Dict, Optional
 import logging
 import time
+from collections import Counter
 
 logging.basicConfig(
     level=logging.INFO,
@@ -20,7 +22,7 @@ CHANNEL_ID = int(os.getenv("CHANNEL_ID", "-1002325683219"))
 
 SCANNER_URL = "https://raw.githubusercontent.com/new493370/NewIp/refs/heads/main/output/best_ips.txt"
 MAX_IPS_PER_POST = 100
-MAX_POSTS_PER_RUN = 5
+MAX_POSTS_PER_RUN = 10
 SENT_HISTORY_FILE = "sent_ips.json"
 CACHE_EXPIRY_HOURS = 24
 
@@ -159,7 +161,29 @@ class IPExtractor:
                 return ip
         return None
 
-    def fetch_ips(self) -> List[str]:
+    def extract_ip_details(self, line: str) -> Optional[Dict]:
+        parts = line.strip().split()
+        if len(parts) < 10:
+            return None
+        
+        ip_port = parts[0]
+        if ':' not in ip_port:
+            return None
+        
+        ip = ip_port.split(':')[0]
+        port = ip_port.split(':')[1]
+        
+        country = parts[8] if len(parts) > 8 else "Unknown"
+        provider = parts[9] if len(parts) > 9 else "Unknown"
+        
+        return {
+            "ip": ip,
+            "port": port,
+            "country": country,
+            "provider": provider
+        }
+
+    def fetch_ips(self) -> List[Dict]:
         try:
             self.cleanup_old_entries()
             
@@ -174,18 +198,23 @@ class IPExtractor:
                 logger.info(f"Received {len(lines)} lines from scanner")
                 
                 for line in lines:
-                    ip = self.extract_ip_from_line(line)
-                    if ip and ip not in unique_ips:
-                        unique_ips.add(ip)
+                    ip_data = self.extract_ip_details(line)
+                    if not ip_data:
+                        continue
+                    
+                    ip = ip_data["ip"]
+                    if ip in unique_ips:
+                        continue
+                    unique_ips.add(ip)
+                    
+                    if ip in self.current_run_ips:
+                        continue
                         
-                        if ip in self.current_run_ips:
-                            continue
-                            
-                        if self.is_ip_sent(ip):
-                            continue
-                            
-                        new_ips.append(ip)
-                        self.current_run_ips.add(ip)
+                    if self.is_ip_sent(ip):
+                        continue
+                        
+                    new_ips.append(ip_data)
+                    self.current_run_ips.add(ip)
                 
                 logger.info(f"Found {len(new_ips)} new unique IPs out of {len(unique_ips)} total unique")
                 return new_ips
@@ -265,13 +294,29 @@ class TelegramSender:
         ips_text = "\n".join(ips)
         return f"<blockquote expandable><code>{ips_text}</code></blockquote>"
 
-    def create_caption(self, ips: List[str]) -> str:
-        ips_block = self.format_ips_block(ips)
-        return f"""🅰️🆁🅸🆂🆃🅰️ 🅸🅿️
+    def get_country_stats(self, ips: List[Dict]) -> Dict:
+        countries = [ip["country"] for ip in ips if ip["country"] != "None"]
+        return dict(Counter(countries))
+
+    def create_caption(self, ips: List[Dict]) -> str:
+        country_stats = self.get_country_stats(ips)
+        country_lines = []
+        
+        if country_stats:
+            country_lines.append("<b>🌍 اطلاعات میزبان:</b>")
+            for country, count in sorted(country_stats.items(), key=lambda x: x[1], reverse=True):
+                country_lines.append(f"<blockquote expandable>📍 {country}: {count} IP</blockquote>")
+        
+        ip_list = [f"{ip['ip']}:{ip['port']}" for ip in ips]
+        ips_block = self.format_ips_block(ip_list)
+        country_block = "\n".join(country_lines) if country_lines else ""
+        
+        return f"""🅰️🆁🅸🆂🅃🅰️ 🅸🅿️
 <b>🔰 لیست آی‌پی جدید</b>
 ➖➖➖➖➖➖➖➖
 {ips_block}
 ➖➖➖➖➖➖➖➖
+{country_block}
 👈 اگر به لیست آی‌‌پی متصل هستید بهش دست نزنید ، فقط زمانی‌که آی‌پی شما فیلتر شد یا از کار افتاد سراغ این آی‌پی‌های جدید بیایید و تست کنید.
 
 ‼️ <b>جهت جواب‌دهی هرچه بهتر، قبل از استفاده ipها رو کپی و با Vpn خاموش اسکن کنید.</b>
@@ -284,7 +329,7 @@ class TelegramSender:
 ➖➖➖➖➖➖➖➖
 #Arista #ip #clean_ip #ٱی‌پی_تمیز"""
 
-    def send_ips_batch(self, ips: List[str]) -> bool:
+    def send_ips_batch(self, ips: List[Dict]) -> bool:
         if not ips:
             return False
         return self.send_message(self.create_caption(ips))
@@ -320,8 +365,8 @@ class IPScheduler:
                 batch = all_ips[i:i + MAX_IPS_PER_POST]
                 
                 if self.sender.send_ips_batch(batch):
-                    for ip in batch:
-                        self.extractor.mark_as_sent(ip)
+                    for ip_data in batch:
+                        self.extractor.mark_as_sent(ip_data["ip"])
                         sent_count += 1
                     
                     posts_count += 1

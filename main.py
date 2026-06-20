@@ -1,4 +1,3 @@
-# main.py
 import requests
 import re
 import json
@@ -311,7 +310,7 @@ class TelegramSender:
         ips_block = self.format_ips_block(ip_list)
         country_block = "\n".join(country_lines) if country_lines else ""
         
-        return f"""🅰️🆁🅸🆂🅃🅰️ 🅸🅿️
+        return f"""🅰️🆁🅸🆂🆃🅰️ 🅸🅿️
 <b>🔰 لیست آی‌پی جدید</b>
 ➖➖➖➖➖➖➖➖
 {ips_block}

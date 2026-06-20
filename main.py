@@ -1,3 +1,4 @@
+# main.py
 import requests
 import re
 import json
@@ -326,9 +327,7 @@ class TelegramSender:
 
 ‼️ <b>جهت جواب‌دهی هرچه بهتر، قبل از استفاده ipها رو کپی و با Vpn خاموش اسکن کنید.</b>
 
-🔹 <a href="https://t.me/aristapanel/34613?single">اسکنر اول</a>
-🔹 <a href="https://t.me/aristapanel/34474">اسکنر دوم</a>
-🔹 <a href="https://t.me/aristapanel/35602">اسکنر سوم</a>
+🔹 <a href="https://t.me/aristapanel/47250">اسکنر آریستا</a>
 ➖➖➖➖➖➖➖➖
 <blockquote>@aristapanel</blockquote>
 ➖➖➖➖➖➖➖➖

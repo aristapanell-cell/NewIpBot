@@ -308,7 +308,6 @@ class TelegramSender:
         country_lines = []
         
         if country_stats:
-            country_lines.append("<b>🌍 اطلاعات میزبان:</b>")
             for country, count in sorted(country_stats.items(), key=lambda x: x[1], reverse=True):
                 country_lines.append(f"📍 {country}: {count} IP")
         
@@ -318,9 +317,9 @@ class TelegramSender:
         country_block = ""
         if country_lines:
             country_text = "\n".join(country_lines)
-            country_block = f"<blockquote expandable>{country_text}</blockquote>"
+            country_block = f"<b>🌍 اطلاعات میزبان:</b>\n<blockquote expandable>{country_text}</blockquote>"
         
-        return f"""🅰️🆁🅸🆂🆃🅰️ 🅸🅿️
+        return f"""🅰️🆁🅸🆂🅰️ 🅸🅿️
 <b>🔰 لیست آی‌پی جدید ({len(ips)} IP)</b>
 ➖➖➖➖➖➖➖➖
 {ips_block}

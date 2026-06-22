@@ -21,7 +21,7 @@ CHANNEL_ID = int(os.getenv("CHANNEL_ID", "-1002325683219"))
 
 SCANNER_URL = "https://raw.githubusercontent.com/new493370/NewIp/refs/heads/main/output/best_ips.txt"
 MAX_IPS_PER_POST = 100
-MAX_POSTS_PER_RUN = 10
+MAX_POSTS_PER_RUN = 1
 SENT_HISTORY_FILE = "sent_ips.json"
 CACHE_EXPIRY_HOURS = 24
 
@@ -329,7 +329,21 @@ class TelegramSender:
 
 ‼️ <b>جهت جواب‌دهی هرچه بهتر، قبل از استفاده ipها رو کپی و با Vpn خاموش اسکن کنید.</b>
 
-🔹 <a href="https://t.me/aristapanel/47250">اسکنر آریستا</a>
+<blockquote><b>🔹 اسکنر آریستا</b></blockquote>
+<a href="https://t.me/aristapanel/47250">لینک اسکنر آریستا</a>
+
+<blockquote><b>👈 منابع مناسب اپلیکیشن V2rayNG, Hiddify, NekoBox, ...</b></blockquote>
+<a href="https://t.me/aristapanel/46625">لینک منابع V2rayNG, Hiddify, NekoBox</a>
+
+<blockquote><b>👈 منابع مناسب اپلیکیشن SingBox</b></blockquote>
+<a href="https://t.me/aristapanel/47104">لینک منابع SingBox</a>
+
+<blockquote><b>👈 منابع مناسب اپلیکیشن ClashMeta</b></blockquote>
+<a href="https://t.me/aristapanel/47109">لینک منابع ClashMeta</a>
+
+<blockquote><b>👈 گیتهاب آریستا</b></blockquote>
+<a href="https://github.com/aristapanell-cell/AriataPanel">لینک گیتهاب آریستا</a>
+
 ➖➖➖➖➖➖➖➖
 <blockquote>@aristapanel</blockquote>
 ➖➖➖➖➖➖➖➖

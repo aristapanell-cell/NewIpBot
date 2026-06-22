@@ -21,7 +21,7 @@ CHANNEL_ID = int(os.getenv("CHANNEL_ID", "-1002325683219"))
 
 SCANNER_URL = "https://raw.githubusercontent.com/new493370/NewIp/refs/heads/main/output/best_ips.txt"
 MAX_IPS_PER_POST = 100
-MAX_POSTS_PER_RUN = 5
+MAX_POSTS_PER_RUN = 1
 SENT_HISTORY_FILE = "sent_ips.json"
 CACHE_EXPIRY_HOURS = 24
 
@@ -160,32 +160,60 @@ class IPExtractor:
         return None
 
     def extract_ip_details(self, line: str) -> Optional[Dict]:
-        parts = line.strip().split()
-        if len(parts) < 10:
-            return None
-        
-        ip_port = parts[0]
-        if ':' not in ip_port:
-            return None
-        
-        ip = ip_port.split(':')[0]
-        port = ip_port.split(':')[1]
-        
-        parts_ip = ip.split('.')
-        if len(parts_ip) != 4:
-            return None
-        if not all(0 <= int(p) <= 255 for p in parts_ip):
-            return None
-        
-        country = parts[8] if len(parts) > 8 else "Unknown"
-        provider = parts[9] if len(parts) > 9 else "Unknown"
-        
-        return {
-            "ip": ip,
-            "port": port,
-            "country": country,
-            "provider": provider
-        }
+        if '|' in line:
+            parts = line.strip().split('|')
+            if len(parts) < 2:
+                return None
+            
+            ip_port = parts[0]
+            if ':' not in ip_port:
+                return None
+            
+            ip = ip_port.split(':')[0]
+            port = ip_port.split(':')[1]
+            
+            parts_ip = ip.split('.')
+            if len(parts_ip) != 4:
+                return None
+            if not all(0 <= int(p) <= 255 for p in parts_ip):
+                return None
+            
+            country = parts[-2] if len(parts) >= 2 else "Unknown"
+            provider = parts[-1] if len(parts) >= 1 else "Unknown"
+            
+            return {
+                "ip": ip,
+                "port": port,
+                "country": country,
+                "provider": provider
+            }
+        else:
+            parts = line.strip().split()
+            if len(parts) < 10:
+                return None
+            
+            ip_port = parts[0]
+            if ':' not in ip_port:
+                return None
+            
+            ip = ip_port.split(':')[0]
+            port = ip_port.split(':')[1]
+            
+            parts_ip = ip.split('.')
+            if len(parts_ip) != 4:
+                return None
+            if not all(0 <= int(p) <= 255 for p in parts_ip):
+                return None
+            
+            country = parts[8] if len(parts) > 8 else "Unknown"
+            provider = parts[9] if len(parts) > 9 else "Unknown"
+            
+            return {
+                "ip": ip,
+                "port": port,
+                "country": country,
+                "provider": provider
+            }
 
     def fetch_ips(self) -> List[Dict]:
         try:

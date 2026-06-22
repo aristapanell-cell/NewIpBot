@@ -329,20 +329,15 @@ class TelegramSender:
 
 ‼️ <b>جهت جواب‌دهی هرچه بهتر، قبل از استفاده ipها رو کپی و با Vpn خاموش اسکن کنید.</b>
 
-<blockquote><b>🔹 اسکنر آریستا</b></blockquote>
-<a href="https://t.me/aristapanel/47250">لینک اسکنر آریستا</a>
+<blockquote><b>🔹 <a href="https://t.me/aristapanel/47250">اسکنر آریستا</a></b></blockquote>
 
-<blockquote><b>👈 منابع مناسب اپلیکیشن V2rayNG, Hiddify, NekoBox, ...</b></blockquote>
-<a href="https://t.me/aristapanel/46625">لینک منابع V2rayNG, Hiddify, NekoBox</a>
+<blockquote><b>👈 <a href="https://t.me/aristapanel/46625">منابع مناسب اپلیکیشن V2rayNG, Hiddify, NekoBox, ...</a></b></blockquote>
 
-<blockquote><b>👈 منابع مناسب اپلیکیشن SingBox</b></blockquote>
-<a href="https://t.me/aristapanel/47104">لینک منابع SingBox</a>
+<blockquote><b>👈 <a href="https://t.me/aristapanel/47104">منابع مناسب اپلیکیشن SingBox</a></b></blockquote>
 
-<blockquote><b>👈 منابع مناسب اپلیکیشن ClashMeta</b></blockquote>
-<a href="https://t.me/aristapanel/47109">لینک منابع ClashMeta</a>
+<blockquote><b>👈 <a href="https://t.me/aristapanel/47109">منابع مناسب اپلیکیشن ClashMeta</a></b></blockquote>
 
-<blockquote><b>👈 گیتهاب آریستا</b></blockquote>
-<a href="https://github.com/aristapanell-cell/AriataPanel">لینک گیتهاب آریستا</a>
+<blockquote><b>👈 <a href="https://github.com/aristapanell-cell/AriataPanel">گیتهاب آریستا</a></b></blockquote>
 
 ➖➖➖➖➖➖➖➖
 <blockquote>@aristapanel</blockquote>

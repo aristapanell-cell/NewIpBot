@@ -21,7 +21,7 @@ CHANNEL_ID = int(os.getenv("CHANNEL_ID", "-1002325683219"))
 
 SCANNER_URL = "https://raw.githubusercontent.com/new493370/NewIp/refs/heads/main/output/best_ips.txt"
 MAX_IPS_PER_POST = 100
-MAX_POSTS_PER_RUN = 1
+MAX_POSTS_PER_RUN = 5
 SENT_HISTORY_FILE = "sent_ips.json"
 CACHE_EXPIRY_HOURS = 24
 

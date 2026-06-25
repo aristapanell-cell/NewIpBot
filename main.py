@@ -23,7 +23,7 @@ SCANNER_URL = "https://raw.githubusercontent.com/new493370/NewIp/refs/heads/main
 MAX_IPS_PER_POST = 100
 MAX_POSTS_PER_RUN = 5
 SENT_HISTORY_FILE = "sent_ips.json"
-CACHE_EXPIRY_HOURS = 24
+CACHE_EXPIRY_HOURS = 48
 
 class IPExtractor:
     def __init__(self):
@@ -150,27 +150,29 @@ class IPExtractor:
         
         return removed_count
 
-    def extract_ip_from_line(self, line: str) -> Optional[str]:
-        match = re.match(r'^(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})(?::\d+)?', line.strip())
-        if match:
-            ip = match.group(1)
-            parts = ip.split('.')
-            if all(0 <= int(p) <= 255 for p in parts):
-                return ip
-        return None
-
     def extract_ip_details(self, line: str) -> Optional[Dict]:
-        if '|' in line:
-            parts = line.strip().split('|')
-            if len(parts) < 2:
+        try:
+            line = line.strip()
+            if not line:
                 return None
             
-            ip_port = parts[0]
-            if ':' not in ip_port:
+            ip_match = re.search(r'\[IP:\s*([^\]]+)\]', line)
+            score_match = re.search(r'\[SCORE=\s*([^\]]+)\]', line)
+            ttfb_match = re.search(r'\[TTFB=\s*([^\]]+)\]', line)
+            proto_match = re.search(r'\[PROTO=\s*([^\]]+)\]', line)
+            rel_match = re.search(r'\[REL=\s*([^\]]+)\]', line)
+            cdn_match = re.search(r'\[CDN=\s*([^\]]+)\]', line)
+            type_match = re.search(r'\[TYPE=\s*([^\]]+)\]', line)
+            sni_match = re.search(r'\[SNI=\s*([^\]]+)\]', line)
+            domain_match = re.search(r'\[DOMAIN=\s*([^\]]+)\]', line)
+            city_match = re.search(r'\[City=\s*([^\]]+)\]', line)
+            country_match = re.search(r'\[Country=\s*([^\]]+)\]', line)
+            provider_match = re.search(r'\[Provider=\s*([^\]]+)\]', line)
+            
+            if not ip_match:
                 return None
             
-            ip = ip_port.split(':')[0]
-            port = ip_port.split(':')[1]
+            ip = ip_match.group(1).strip()
             
             parts_ip = ip.split('.')
             if len(parts_ip) != 4:
@@ -178,42 +180,23 @@ class IPExtractor:
             if not all(0 <= int(p) <= 255 for p in parts_ip):
                 return None
             
-            country = parts[-2] if len(parts) >= 2 else "Unknown"
-            provider = parts[-1] if len(parts) >= 1 else "Unknown"
-            
             return {
                 "ip": ip,
-                "port": port,
-                "country": country,
-                "provider": provider
+                "score": score_match.group(1).strip() if score_match else "0",
+                "ttfb": ttfb_match.group(1).strip() if ttfb_match else "-",
+                "proto": proto_match.group(1).strip() if proto_match else "-",
+                "reliability": rel_match.group(1).strip() if rel_match else "-",
+                "cdn": cdn_match.group(1).strip() if cdn_match else "-",
+                "type": type_match.group(1).strip() if type_match else "-",
+                "sni": sni_match.group(1).strip() if sni_match else "-",
+                "domain": domain_match.group(1).strip() if domain_match else "-",
+                "city": city_match.group(1).strip() if city_match else "-",
+                "country": country_match.group(1).strip() if country_match else "Unknown",
+                "provider": provider_match.group(1).strip() if provider_match else "Unknown"
             }
-        else:
-            parts = line.strip().split()
-            if len(parts) < 10:
-                return None
-            
-            ip_port = parts[0]
-            if ':' not in ip_port:
-                return None
-            
-            ip = ip_port.split(':')[0]
-            port = ip_port.split(':')[1]
-            
-            parts_ip = ip.split('.')
-            if len(parts_ip) != 4:
-                return None
-            if not all(0 <= int(p) <= 255 for p in parts_ip):
-                return None
-            
-            country = parts[8] if len(parts) > 8 else "Unknown"
-            provider = parts[9] if len(parts) > 9 else "Unknown"
-            
-            return {
-                "ip": ip,
-                "port": port,
-                "country": country,
-                "provider": provider
-            }
+        except Exception as e:
+            logger.debug(f"Error extracting IP details from line: {e}")
+            return None
 
     def fetch_ips(self) -> List[Dict]:
         try:
@@ -323,36 +306,49 @@ class TelegramSender:
         
         return False
 
-    def format_ips_block(self, ips: List[str]) -> str:
-        ips_text = "\n".join(ips)
+    def format_ips_block(self, ips: List[Dict]) -> str:
+        ips_text = "\n".join([ip["ip"] for ip in ips])
         return f"<blockquote expandable><code>{ips_text}</code></blockquote>"
 
     def get_country_stats(self, ips: List[Dict]) -> Dict:
-        countries = [ip["country"] for ip in ips if ip["country"] != "None"]
+        countries = [ip["country"] for ip in ips if ip["country"] != "Unknown"]
         return dict(Counter(countries))
+
+    def get_cdn_stats(self, ips: List[Dict]) -> Dict:
+        cdns = [ip["cdn"] for ip in ips if ip["cdn"] != "-" and ip["cdn"] != "unknown"]
+        return dict(Counter(cdns))
 
     def create_caption(self, ips: List[Dict]) -> str:
         country_stats = self.get_country_stats(ips)
+        cdn_stats = self.get_cdn_stats(ips)
+        
         country_lines = []
-        
         if country_stats:
-            for country, count in sorted(country_stats.items(), key=lambda x: x[1], reverse=True):
-                country_lines.append(f"📍 {country}: {count} IP")
+            for country, count in sorted(country_stats.items(), key=lambda x: x[1], reverse=True)[:5]:
+                country_lines.append(f"📍 {country}: {count}")
         
-        ip_list = [ip["ip"] for ip in ips]
-        ips_block = self.format_ips_block(ip_list)
+        cdn_lines = []
+        if cdn_stats:
+            for cdn, count in sorted(cdn_stats.items(), key=lambda x: x[1], reverse=True)[:5]:
+                cdn_lines.append(f"🛡️ {cdn}: {count}")
         
-        country_block = ""
-        if country_lines:
-            country_text = "\n".join(country_lines)
-            country_block = f"<b>🌍 اطلاعات میزبان:</b>\n<blockquote expandable>{country_text}</blockquote>"
+        ips_block = self.format_ips_block(ips)
+        
+        stats_block = ""
+        if country_lines or cdn_lines:
+            stats_parts = []
+            if country_lines:
+                stats_parts.append("🌍 <b>کشورها:</b>\n" + "\n".join(country_lines))
+            if cdn_lines:
+                stats_parts.append("🛡️ <b>CDN:</b>\n" + "\n".join(cdn_lines))
+            stats_block = f"<blockquote expandable>{chr(10).join(stats_parts)}</blockquote>"
         
         return f"""🅰️🆁🅸🆂🅰️ 🅸🅿️
 <b>🔰 لیست آی‌پی جدید ({len(ips)} IP)</b>
 ➖➖➖➖➖➖➖➖
 {ips_block}
 ➖➖➖➖➖➖➖➖
-{country_block}
+{stats_block}
 👈 اگر به لیست آی‌‌پی متصل هستید بهش دست نزنید ، فقط زمانی‌که آی‌پی شما فیلتر شد یا از کار افتاد سراغ این آی‌پی‌های جدید بیایید و تست کنید.
 
 ‼️ <b>جهت جواب‌دهی هرچه بهتر، قبل از استفاده ipها رو کپی و با Vpn خاموش اسکن کنید.</b>

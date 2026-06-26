@@ -361,7 +361,7 @@ class TelegramSender:
 
 <blockquote><b>👈 <a href="https://t.me/aristapanel/47109">منابع مناسب اپلیکیشن ClashMeta</a></b></blockquote>
 
-<blockquote><b>📂 <a href="https://github.com/aristapanell-cell/ARISTA-MATRIX-PIPELINE">پروژه اسکنر ماتریس آریستا</a></b></blockquote>
+<blockquote><b>📂 <a href="https://github.com/aristapanell-cell/ARISTA-MATRIX-PIPELINE">ARISTA MATRIX PIPELINE پروژه</a></b></blockquote>
 
 <blockquote><b>📦 <a href="https://github.com/aristapanell-cell/AriataPanel">پروژه جمع‌آوری کانفیگ و سابسکریپشن</a></b></blockquote>
 

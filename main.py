@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 CHANNEL_ID = int(os.getenv("CHANNEL_ID", "-1002325683219"))
 
-SCANNER_URL = "raw.githubusercontent.com/aristapanell-cell/ARISTA-MATRIX-PIPELINE/refs/heads/main/output/best_ips.txt"
+SCANNER_URL = "https://raw.githubusercontent.com/aristapanell-cell/ARISTA-MATRIX-PIPELINE/refs/heads/main/output/best_ips.txt"
 MAX_IPS_PER_POST = 100
 MAX_POSTS_PER_RUN = 5
 SENT_HISTORY_FILE = "sent_ips.json"
@@ -361,7 +361,9 @@ class TelegramSender:
 
 <blockquote><b>👈 <a href="https://t.me/aristapanel/47109">منابع مناسب اپلیکیشن ClashMeta</a></b></blockquote>
 
-<blockquote><b>👈 <a href="https://github.com/aristapanell-cell/AriataPanel">گیتهاب آریستا</a></b></blockquote>
+<blockquote><b>📂 <a href="https://github.com/aristapanell-cell/ARISTA-MATRIX-PIPELINE">پروژه اسکنر ماتریس آریستا</a></b></blockquote>
+
+<blockquote><b>📦 <a href="https://github.com/aristapanell-cell/AriataPanel">پروژه جمع‌آوری کانفیگ و سابسکریپشن</a></b></blockquote>
 
 ➖➖➖➖➖➖➖➖
 <blockquote>@aristapanel</blockquote>

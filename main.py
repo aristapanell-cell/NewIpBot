@@ -32,7 +32,6 @@ class IPExtractor:
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
         })
         self.sent_ips = {}
-        self.current_run_ips = set()
         self.history_file = SENT_HISTORY_FILE
         self._dirty = False
         
@@ -45,28 +44,51 @@ class IPExtractor:
             try:
                 with open(self.history_file, 'r', encoding='utf-8') as f:
                     data = json.load(f)
-                    return self._parse_history_data(data)
+                    if isinstance(data, dict):
+                        return self._parse_history_data(data)
+                    else:
+                        logger.warning("Invalid history format, resetting")
+                        return {}
             except Exception as e:
                 logger.error(f"Error loading history: {e}")
                 if os.path.exists(self.history_file + ".backup"):
                     try:
                         with open(self.history_file + ".backup", 'r', encoding='utf-8') as f:
                             data = json.load(f)
-                            return self._parse_history_data(data)
+                            if isinstance(data, dict):
+                                return self._parse_history_data(data)
                     except Exception as e2:
                         logger.error(f"Error loading backup: {e2}")
         return {}
 
     def _parse_history_data(self, data: Dict) -> Dict:
         converted = {}
+        current_time = datetime.now()
+        expired_threshold = current_time - timedelta(hours=CACHE_EXPIRY_HOURS)
+        
         for k, v in data.items():
             try:
                 if isinstance(v, str):
-                    converted[k] = datetime.fromisoformat(v)
-                else:
-                    converted[k] = datetime.now()
-            except (ValueError, TypeError):
-                converted[k] = datetime.now()
+                    try:
+                        dt = datetime.fromisoformat(v.replace('Z', '+00:00'))
+                        if dt < expired_threshold:
+                            continue
+                        converted[k] = dt
+                    except ValueError:
+                        try:
+                            dt = datetime.fromtimestamp(float(v))
+                            if dt < expired_threshold:
+                                continue
+                            converted[k] = dt
+                        except (ValueError, TypeError):
+                            continue
+                elif isinstance(v, (int, float)):
+                    dt = datetime.fromtimestamp(v)
+                    if dt >= expired_threshold:
+                        converted[k] = dt
+            except (ValueError, TypeError, OverflowError):
+                continue
+        
         return converted
 
     def save_sent_history(self):
@@ -80,11 +102,16 @@ class IPExtractor:
                 with open(self.history_file + ".backup", 'w', encoding='utf-8') as f:
                     f.write(old_data)
             
-            data = {k: v.isoformat() for k, v in self.sent_ips.items()}
+            data = {}
+            for k, v in self.sent_ips.items():
+                if isinstance(v, datetime):
+                    data[k] = v.isoformat()
+            
             with open(self.history_file, 'w', encoding='utf-8') as f:
                 json.dump(data, f, ensure_ascii=False, indent=2)
             
             self._dirty = False
+            logger.debug(f"Saved {len(data)} entries to history")
         except Exception as e:
             logger.error(f"Error saving history: {e}")
 
@@ -94,11 +121,13 @@ class IPExtractor:
     def is_ip_sent(self, ip: str) -> bool:
         ip_hash = self._get_ip_hash(ip)
         
-        if ip in self.current_run_ips:
-            return True
-        
         if ip_hash in self.sent_ips:
             time_sent = self.sent_ips[ip_hash]
+            if not isinstance(time_sent, datetime):
+                del self.sent_ips[ip_hash]
+                self._dirty = True
+                return False
+            
             if datetime.now() - time_sent < timedelta(hours=CACHE_EXPIRY_HOURS):
                 return True
             else:
@@ -112,7 +141,6 @@ class IPExtractor:
         for ip_data in ips:
             ip_hash = self._get_ip_hash(ip_data["ip"])
             self.sent_ips[ip_hash] = datetime.now()
-            self.current_run_ips.add(ip_data["ip"])
         self._dirty = True
 
     def cleanup_old_entries(self):
@@ -120,6 +148,12 @@ class IPExtractor:
         removed = 0
         
         for ip_hash, sent_time in list(self.sent_ips.items()):
+            if not isinstance(sent_time, datetime):
+                del self.sent_ips[ip_hash]
+                removed += 1
+                self._dirty = True
+                continue
+                
             if current_time - sent_time >= timedelta(hours=CACHE_EXPIRY_HOURS):
                 del self.sent_ips[ip_hash]
                 removed += 1
@@ -143,18 +177,31 @@ class IPExtractor:
             
             ip = ip_match.group(1).strip()
             parts = ip.split('.')
-            if len(parts) != 4 or not all(0 <= int(p) <= 255 for p in parts):
+            if len(parts) != 4:
                 return None
+            try:
+                if not all(0 <= int(p) <= 255 for p in parts):
+                    return None
+            except ValueError:
+                return None
+            
+            score_match = re.search(r'\[SCORE=\s*([^\]]+)\]', line)
+            ttfb_match = re.search(r'\[TTFB=\s*([^\]]+)\]', line)
+            proto_match = re.search(r'\[PROTO=\s*([^\]]+)\]', line)
+            cdn_match = re.search(r'\[CDN=\s*([^\]]+)\]', line)
+            country_match = re.search(r'\[Country=\s*([^\]]+)\]', line)
+            city_match = re.search(r'\[City=\s*([^\]]+)\]', line)
+            provider_match = re.search(r'\[Provider=\s*([^\]]+)\]', line)
             
             return {
                 "ip": ip,
-                "score": re.search(r'\[SCORE=\s*([^\]]+)\]', line).group(1).strip() if re.search(r'\[SCORE=\s*([^\]]+)\]', line) else "0",
-                "ttfb": re.search(r'\[TTFB=\s*([^\]]+)\]', line).group(1).strip() if re.search(r'\[TTFB=\s*([^\]]+)\]', line) else "-",
-                "proto": re.search(r'\[PROTO=\s*([^\]]+)\]', line).group(1).strip() if re.search(r'\[PROTO=\s*([^\]]+)\]', line) else "-",
-                "cdn": re.search(r'\[CDN=\s*([^\]]+)\]', line).group(1).strip() if re.search(r'\[CDN=\s*([^\]]+)\]', line) else "-",
-                "country": re.search(r'\[Country=\s*([^\]]+)\]', line).group(1).strip() if re.search(r'\[Country=\s*([^\]]+)\]', line) else "Unknown",
-                "city": re.search(r'\[City=\s*([^\]]+)\]', line).group(1).strip() if re.search(r'\[City=\s*([^\]]+)\]', line) else "-",
-                "provider": re.search(r'\[Provider=\s*([^\]]+)\]', line).group(1).strip() if re.search(r'\[Provider=\s*([^\]]+)\]', line) else "Unknown"
+                "score": score_match.group(1).strip() if score_match else "0",
+                "ttfb": ttfb_match.group(1).strip() if ttfb_match else "-",
+                "proto": proto_match.group(1).strip() if proto_match else "-",
+                "cdn": cdn_match.group(1).strip() if cdn_match else "-",
+                "country": country_match.group(1).strip() if country_match else "Unknown",
+                "city": city_match.group(1).strip() if city_match else "-",
+                "provider": provider_match.group(1).strip() if provider_match else "Unknown"
             }
         except Exception as e:
             logger.debug(f"Extraction error: {e}")
@@ -163,7 +210,6 @@ class IPExtractor:
     def fetch_ips(self) -> List[Dict]:
         try:
             self.cleanup_old_entries()
-            self.current_run_ips = set()
             
             logger.info(f"Fetching IPs from scanner")
             response = self.session.get(SCANNER_URL, timeout=30)
@@ -192,7 +238,6 @@ class IPExtractor:
                     continue
                 
                 new_ips.append(ip_data)
-                self.current_run_ips.add(ip)
             
             logger.info(f"Found {len(new_ips)} new IPs")
             return new_ips
@@ -203,8 +248,13 @@ class IPExtractor:
 
     def get_statistics(self) -> Dict:
         total = len(self.sent_ips)
-        expired = sum(1 for t in self.sent_ips.values() 
-                     if datetime.now() - t >= timedelta(hours=CACHE_EXPIRY_HOURS))
+        expired = 0
+        for t in self.sent_ips.values():
+            if isinstance(t, datetime):
+                if datetime.now() - t >= timedelta(hours=CACHE_EXPIRY_HOURS):
+                    expired += 1
+            else:
+                expired += 1
         
         return {
             'total_entries': total,
@@ -238,7 +288,8 @@ class TelegramSender:
                 if response.status_code == 200:
                     return True
                 elif response.status_code == 429:
-                    time.sleep(int(response.headers.get('Retry-After', 5)))
+                    retry_after = int(response.headers.get('Retry-After', 5))
+                    time.sleep(retry_after)
                 else:
                     time.sleep(5 * (attempt + 1))
                     

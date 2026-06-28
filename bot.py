@@ -14,7 +14,7 @@ if not BOT_TOKEN or not CHANNEL_ID:
     raise ValueError("BOT_TOKEN and CHANNEL_ID must be set in environment!")
 
 URL = "https://cdn.jsdelivr.net/gh/aristapanell-cell/ARISTA-MATRIX-PIPELINE@refs/heads/main/output/best_ips.txt"
-MAX_IPS_PER_POST = 200
+MAX_IPS_PER_POST = 150
 MAX_POSTS_PER_RUN = 3
 KEEP_HOURS = 168
 
@@ -34,6 +34,7 @@ def init_db():
     """)
     conn.commit()
     conn.close()
+    logger.info(f"Database initialized at {DB_PATH}")
 
 def clean_old_ips():
     conn = sqlite3.connect(DB_PATH)
@@ -52,6 +53,8 @@ def get_sent_ips():
     c.execute("SELECT ip FROM sent_ips")
     rows = c.fetchall()
     conn.close()
+    sent_count = len(rows)
+    logger.info(f"Loaded {sent_count} previously sent IPs from database")
     return {row[0] for row in rows}
 
 def mark_as_sent(ips):

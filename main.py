@@ -212,7 +212,7 @@ class IPExtractor:
             self.cleanup_old_entries()
             
             logger.info(f"Fetching IPs from scanner")
-            response = self.session.get(SCANNER_URL, timeout=30)
+            response = self.session.get(SCANNER_URL, timeout=60)
             
             if response.status_code != 200:
                 logger.error(f"Failed to fetch: status {response.status_code}")
@@ -223,23 +223,38 @@ class IPExtractor:
             
             new_ips = []
             unique_ips = set()
+            skipped_sent = 0
+            skipped_duplicate = 0
+            processed = 0
             
             for line in lines:
+                processed += 1
+                if processed % 1000 == 0:
+                    logger.info(f"Processed {processed} lines, found {len(new_ips)} new IPs")
+                
                 ip_data = self.extract_ip_details(line)
                 if not ip_data:
                     continue
                 
                 ip = ip_data["ip"]
+                
                 if ip in unique_ips:
+                    skipped_duplicate += 1
                     continue
                 unique_ips.add(ip)
                 
                 if self.is_ip_sent(ip):
+                    skipped_sent += 1
                     continue
                 
                 new_ips.append(ip_data)
+                
+                if len(new_ips) >= MAX_IPS_PER_POST * MAX_POSTS_PER_RUN:
+                    logger.info(f"Reached limit of {MAX_IPS_PER_POST * MAX_POSTS_PER_RUN} IPs")
+                    break
             
-            logger.info(f"Found {len(new_ips)} new IPs")
+            logger.info(f"Processed {processed} lines total")
+            logger.info(f"Found {len(new_ips)} new IPs (skipped {skipped_sent} sent, {skipped_duplicate} duplicate)")
             return new_ips
             
         except Exception as e:

@@ -14,8 +14,8 @@ if not BOT_TOKEN or not CHANNEL_ID:
     raise ValueError("BOT_TOKEN and CHANNEL_ID must be set in environment!")
 
 URL = "https://cdn.jsdelivr.net/gh/aristapanell-cell/ARISTA-MATRIX-PIPELINE@refs/heads/main/output/best_ips.txt"
-MAX_IPS_PER_POST = 200
-MAX_POSTS_PER_RUN = 5
+MAX_IPS_PER_POST = 150
+MAX_POSTS_PER_RUN = 3
 KEEP_HOURS = 168
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
@@ -73,7 +73,7 @@ def extract_ips_from_text(text):
     for ip, port in matches:
         parts = ip.split(".")
         if len(parts) == 4 and all(p.isdigit() and 0 <= int(p) <= 255 for p in parts):
-            valid_ips.append(f"{ip}:{port}")
+            valid_ips.append(ip)
     return valid_ips
 
 def fetch_ips_from_url():

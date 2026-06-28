@@ -14,7 +14,7 @@ if not BOT_TOKEN or not CHANNEL_ID:
     raise ValueError("BOT_TOKEN and CHANNEL_ID must be set in environment!")
 
 URL = "https://cdn.jsdelivr.net/gh/aristapanell-cell/ARISTA-MATRIX-PIPELINE@refs/heads/main/output/best_ips.txt"
-MAX_IPS_PER_POST = 150
+MAX_IPS_PER_POST = 200
 MAX_POSTS_PER_RUN = 3
 KEEP_HOURS = 168
 
@@ -88,14 +88,13 @@ def fetch_ips_from_url():
         logger.error(f"Error fetching file: {e}")
         return []
 
-def generate_caption(ips, stats=""):
+def generate_caption(ips):
     ips_text = "\n".join(ips) if ips else "No new IPs found."
     return f"""🅰️🆁🅸🆂🅰️ 🅸🅿️
 <b>🔰 لیست آی‌پی جدید ({len(ips)} IP)</b>
 ➖➖➖➖➖➖➖➖
 <blockquote expandable><code>{ips_text}</code></blockquote>
 ➖➖➖➖➖➖➖➖
-{stats}
 👈 اگر به لیست آی‌‌پی متصل هستید بهش دست نزنید ، فقط زمانی‌که آی‌پی شما فیلتر شد یا از کار افتاد سراغ این آی‌پی‌های جدید بیایید و تست کنید.
 
 ‼️ <b>جهت جواب‌دهی هرچه بهتر، قبل از استفاده ipها رو کپی و با Vpn خاموش اسکن کنید.</b>
@@ -127,7 +126,7 @@ def send_ips_to_channel(bot, ips):
             break
 
         chunk = ips[i:i + MAX_IPS_PER_POST]
-        caption = generate_caption(chunk, stats=f"📊 تعداد: {len(chunk)} آی‌پی")
+        caption = generate_caption(chunk)
 
         try:
             bot.send_message(

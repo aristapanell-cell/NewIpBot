@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 CHANNEL_ID = int(os.getenv("CHANNEL_ID", "-1002325683219"))
 
-SCANNER_URL = "https://raw.githubusercontent.com/new493370/NewIp/refs/heads/main/output/best_ips.txt"
+SCANNER_URL = "https://github.com/aristapanell-cell/ARISTA-MATRIX-PIPELINE/raw/refs/heads/main/output/best_ips.txt"
 MAX_IPS_PER_POST = 300
 MAX_POSTS_PER_RUN = 5
 SENT_HISTORY_FILE = "sent_ips.json"

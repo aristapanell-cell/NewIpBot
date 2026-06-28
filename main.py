@@ -23,7 +23,7 @@ SCANNER_URL = "https://raw.githubusercontent.com/new493370/NewIp/refs/heads/main
 MAX_IPS_PER_POST = 300
 MAX_POSTS_PER_RUN = 5
 SENT_HISTORY_FILE = "sent_ips.json"
-CACHE_EXPIRY_HOURS = 48
+CACHE_EXPIRY_HOURS = 168
 
 class IPExtractor:
     def __init__(self):

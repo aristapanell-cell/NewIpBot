@@ -12,6 +12,14 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Cache database
+        uses: actions/cache@v3
+        with:
+          path: sent_ips.db
+          key: sent-ips-db-${{ github.run_id }}
+          restore-keys: |
+            sent-ips-db-
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:

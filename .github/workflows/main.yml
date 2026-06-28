@@ -29,6 +29,10 @@ jobs:
           else
             echo "{}" > sent_ips.json
           fi
+          if [ ! -f sent_ips.json ]; then
+            echo "{}" > sent_ips.json
+          fi
+          cp sent_ips.json sent_ips.json.backup 2>/dev/null || true
 
       - uses: actions/setup-python@v6
         with:
@@ -50,8 +54,18 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           
-          git checkout cache 2>/dev/null || git checkout --orphan cache
-          cp "$GITHUB_WORKSPACE/sent_ips.json" . 2>/dev/null || echo "{}" > sent_ips.json
+          if git show-ref --verify --quiet refs/heads/cache; then
+            git checkout cache
+          else
+            git checkout --orphan cache
+          fi
+          
+          if [ -f "$GITHUB_WORKSPACE/sent_ips.json" ]; then
+            cp "$GITHUB_WORKSPACE/sent_ips.json" .
+          else
+            echo "{}" > sent_ips.json
+          fi
+          
           git add sent_ips.json
           git commit -m "Update history $(date +%s)" || echo "No changes"
           git push origin cache --force

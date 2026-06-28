@@ -20,7 +20,7 @@ BOT_TOKEN = os.getenv("BOT_TOKEN")
 CHANNEL_ID = int(os.getenv("CHANNEL_ID", "-1002325683219"))
 
 SCANNER_URL = "https://raw.githubusercontent.com/new493370/NewIp/refs/heads/main/output/best_ips.txt"
-MAX_IPS_PER_POST = 100
+MAX_IPS_PER_POST = 300
 MAX_POSTS_PER_RUN = 5
 SENT_HISTORY_FILE = "sent_ips.json"
 CACHE_EXPIRY_HOURS = 48
@@ -277,10 +277,13 @@ class TelegramSender:
 ‼️ <b>جهت جواب‌دهی هرچه بهتر، قبل از استفاده ipها رو کپی و با Vpn خاموش اسکن کنید.</b>
 
 <blockquote><b>🔹 <a href="https://t.me/aristapanel/47250">اسکنر آریستا</a></b></blockquote>
+<blockquote><b>🌐 <a href="https://github.com/aristapanell-cell/ARISTA-MATRIX-PIPELINE/tree/main">گیتهاب آی‌پی اسکنر</a></b></blockquote>
+<blockquote><b>📊 <a href="https://raw.githubusercontent.com/aristapanell-cell/ARISTA-MATRIX-PIPELINE/refs/heads/main/output/best_ips.txt">مشاهده جزئیات کامل هر آی‌پی</a></b></blockquote>
+<blockquote><b>📦 <a href="https://github.com/aristapanell-cell/AriataPanel">گیتهاب آریستا (کانفیگ)</a></b></blockquote>
 <blockquote><b>👈 <a href="https://t.me/aristapanel/46625">منابع مناسب اپلیکیشن V2rayNG, Hiddify, NekoBox, ...</a></b></blockquote>
 <blockquote><b>👈 <a href="https://t.me/aristapanel/47104">منابع مناسب اپلیکیشن SingBox</a></b></blockquote>
 <blockquote><b>👈 <a href="https://t.me/aristapanel/47109">منابع مناسب اپلیکیشن ClashMeta</a></b></blockquote>
-<blockquote><b>👈 <a href="https://github.com/aristapanell-cell/AriataPanel">گیتهاب آریستا</a></b></blockquote>
+
 ➖➖➖➖➖➖➖➖
 <blockquote>@aristapanel</blockquote>
 ➖➖➖➖➖➖➖➖

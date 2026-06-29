@@ -13,7 +13,7 @@ CHANNEL_ID = os.environ.get("CHANNEL_ID")
 if not BOT_TOKEN or not CHANNEL_ID:
     raise ValueError("BOT_TOKEN and CHANNEL_ID must be set in environment!")
 
-URL = "https://cdn.jsdelivr.net/gh/aristapanell-cell/ARISTA-MATRIX-PIPELINE@refs/heads/main/output/best_ips.txt"
+URL = "https://raw.githubusercontent.com/aristapanell-cell/ARISTA-MATRIX-PIPELINE/refs/heads/main/output/best_ips.txt"
 MAX_IPS_PER_POST = 150
 MAX_POSTS_PER_RUN = 3
 KEEP_HOURS = 168
@@ -84,9 +84,18 @@ def fetch_ips_from_url():
         resp = requests.get(URL, timeout=30)
         resp.raise_for_status()
         text = resp.text
+        if not text or not text.strip():
+            logger.warning("File is empty or contains no data")
+            return []
         all_ips = extract_ips_from_text(text)
         logger.info(f"Extracted {len(all_ips)} IPs from file.")
         return all_ips
+    except requests.exceptions.HTTPError as e:
+        if e.response.status_code == 404:
+            logger.warning("File not found (404). No IPs to fetch.")
+        else:
+            logger.error(f"HTTP error: {e}")
+        return []
     except Exception as e:
         logger.error(f"Error fetching file: {e}")
         return []
@@ -103,7 +112,7 @@ def generate_caption(ips):
 ‼️ <b>جهت جواب‌دهی هرچه بهتر، قبل از استفاده ipها رو کپی و با Vpn خاموش اسکن کنید.</b>
 
 <blockquote><b>🔹 <a href="https://t.me/aristapanel/47250">اسکنر آریستا</a></b></blockquote>
-<blockquote><b>🌐 <a href="https://github.com/aristapanell-cell/ARISTA-MATRIX-PIPELINE">گیتهاب آی‌پی اسکنر</a></b></blockquote>
+<blockquote><b>🌐 <a href="https://cdn.jsdelivr.net/gh/aristapanell-cell/ARISTA-MATRIX-PIPELINE@refs/heads/main/output/best_ips.txt">گیتهاب آی‌پی اسکنر</a></b></blockquote>
 <blockquote><b>📊 <a href="https://raw.githubusercontent.com/aristapanell-cell/ARISTA-MATRIX-PIPELINE/refs/heads/main/output/best_ips.txt">مشاهده جزئیات کامل هر آی‌پی</a></b></blockquote>
 <blockquote><b>📦 <a href="https://github.com/aristapanell-cell/AriataPanel">گیتهاب آریستا (کانفیگ)</a></b></blockquote>
 <blockquote><b>👈 <a href="https://t.me/aristapanel/46625">منابع مناسب اپلیکیشن V2rayNG, Hiddify, NekoBox, ...</a></b></blockquote>
@@ -155,7 +164,7 @@ def main():
 
     all_ips = fetch_ips_from_url()
     if not all_ips:
-        logger.warning("No IPs retrieved from file.")
+        logger.warning("No IPs retrieved from file. Skipping...")
         return
 
     sent_set = get_sent_ips()

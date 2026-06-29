@@ -103,7 +103,7 @@ def generate_caption(ips):
 ‼️ <b>جهت جواب‌دهی هرچه بهتر، قبل از استفاده ipها رو کپی و با Vpn خاموش اسکن کنید.</b>
 
 <blockquote><b>🔹 <a href="https://t.me/aristapanel/47250">اسکنر آریستا</a></b></blockquote>
-<blockquote><b>🌐 <a href="https://cdn.jsdelivr.net/gh/aristapanell-cell/ARISTA-MATRIX-PIPELINE@refs/heads/main/output/best_ips.txt">گیتهاب آی‌پی اسکنر</a></b></blockquote>
+<blockquote><b>🌐 <a href="https://github.com/aristapanell-cell/ARISTA-MATRIX-PIPELINE">گیتهاب آی‌پی اسکنر</a></b></blockquote>
 <blockquote><b>📊 <a href="https://raw.githubusercontent.com/aristapanell-cell/ARISTA-MATRIX-PIPELINE/refs/heads/main/output/best_ips.txt">مشاهده جزئیات کامل هر آی‌پی</a></b></blockquote>
 <blockquote><b>📦 <a href="https://github.com/aristapanell-cell/AriataPanel">گیتهاب آریستا (کانفیگ)</a></b></blockquote>
 <blockquote><b>👈 <a href="https://t.me/aristapanel/46625">منابع مناسب اپلیکیشن V2rayNG, Hiddify, NekoBox, ...</a></b></blockquote>

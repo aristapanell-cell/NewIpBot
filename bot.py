@@ -16,7 +16,7 @@ if not BOT_TOKEN or not CHANNEL_ID:
 URL = "https://raw.githubusercontent.com/aristapanell-cell/ARISTA-MATRIX-PIPELINE/refs/heads/main/output/best_ips.txt"
 MAX_IPS_PER_POST = 150
 MAX_POSTS_PER_RUN = 3
-KEEP_HOURS = 168
+KEEP_HOURS = 720
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)

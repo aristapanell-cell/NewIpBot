@@ -14,8 +14,8 @@ if not BOT_TOKEN or not CHANNEL_ID:
     raise ValueError("BOT_TOKEN and CHANNEL_ID must be set in environment!")
 
 URL = "https://raw.githubusercontent.com/aristapanell-cell/ARISTA-MATRIX-PIPELINE/refs/heads/main/output/best_ips.txt"
-MAX_IPS_PER_POST = 150
-MAX_POSTS_PER_RUN = 3
+MAX_IPS_PER_POST = 250
+MAX_POSTS_PER_RUN = 1
 KEEP_HOURS = 720
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")

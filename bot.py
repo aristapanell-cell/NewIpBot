@@ -122,7 +122,9 @@ def generate_caption(ips):
 ➖➖➖➖➖➖➖➖
 <blockquote>@aristapanel</blockquote>
 ➖➖➖➖➖➖➖➖
-#Arista #ip #clean_ip #ٱی‌پی_تمیز"""
+#Arista #ip #clean_ip #ٱی‌پی_تمیز
+<blockquote>مرگ بر جمهوری اسهالی</blockquote>"""
+
 
 def send_ips_to_channel(bot, ips):
     if not ips:

@@ -23,6 +23,37 @@ logger = logging.getLogger(__name__)
 
 DB_PATH = "sent_ips.db"
 
+class TelegramSender:
+    def __init__(self, token, chat_id):
+        self.token = token
+        self.chat_id = chat_id
+        self.bot = Bot(token=token)
+
+    def send_sticker(self):
+        try:
+            self.bot.send_sticker(
+                chat_id=self.chat_id,
+                sticker="CAACAgQAAxkBAAFQHzNqZV7ukQpLInqWTkkjXH1OFuJjRgAC9xkAAs-nMFMajFNG7THbSj0E"
+            )
+            logger.info("Logo sticker sent successfully.")
+            return True
+        except TelegramError as e:
+            logger.error(f"Sticker send failed: {e}")
+            return False
+
+    def send_message(self, text, parse_mode="HTML", disable_web_page_preview=False):
+        try:
+            self.bot.send_message(
+                chat_id=self.chat_id,
+                text=text,
+                parse_mode=parse_mode,
+                disable_web_page_preview=disable_web_page_preview
+            )
+            return True
+        except TelegramError as e:
+            logger.error(f"Error sending message: {e}")
+            return False
+
 def init_db():
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
@@ -57,7 +88,7 @@ def get_sent_ips():
     logger.info(f"Loaded {sent_count} previously sent IPs from database")
     return {row[0] for row in rows}
 
-def mark_as_sent(ips):
+def mark_as_sent_batch(ips):
     if not ips:
         return
     conn = sqlite3.connect(DB_PATH)
@@ -125,14 +156,14 @@ def generate_caption(ips):
 #Arista #ip #clean_ip #ٱی‌پی_تمیز
 <blockquote>مرگ بر جمهوری اسهالی</blockquote>"""
 
-
-def send_ips_to_channel(bot, ips):
+def send_ips_to_channel(sender, ips):
     if not ips:
         logger.info("No new IPs to send.")
-        return
+        return 0
 
     total_sent = 0
     posts = 0
+    sent_in_run = []
 
     for i in range(0, len(ips), MAX_IPS_PER_POST):
         if posts >= MAX_POSTS_PER_RUN:
@@ -142,19 +173,18 @@ def send_ips_to_channel(bot, ips):
         chunk = ips[i:i + MAX_IPS_PER_POST]
         caption = generate_caption(chunk)
 
-        try:
-            bot.send_message(
-                chat_id=CHANNEL_ID,
-                text=caption,
-                parse_mode="HTML",
-                disable_web_page_preview=False
-            )
+        if sender.send_message(caption):
             logger.info(f"Post {posts+1}: sent {len(chunk)} IPs.")
             total_sent += len(chunk)
+            sent_in_run.extend(chunk)
             posts += 1
-        except TelegramError as e:
-            logger.error(f"Error sending post: {e}")
-            break
+
+    if sent_in_run:
+        mark_as_sent_batch(sent_in_run)
+        if sender.send_sticker():
+            logger.info("Logo sticker sent successfully.")
+        else:
+            logger.warning("Failed to send logo sticker.")
 
     logger.info(f"Total {total_sent} IPs sent in {posts} posts.")
     return total_sent
@@ -177,11 +207,8 @@ def main():
         logger.info("All IPs already sent.")
         return
 
-    bot = Bot(token=BOT_TOKEN)
-    sent_count = send_ips_to_channel(bot, new_ips)
-
-    if sent_count:
-        mark_as_sent(new_ips[:sent_count])
+    sender = TelegramSender(BOT_TOKEN, CHANNEL_ID)
+    sent_count = send_ips_to_channel(sender, new_ips)
 
     logger.info("Execution finished.")
 

@@ -33,7 +33,7 @@ class TelegramSender:
         try:
             self.bot.send_sticker(
                 chat_id=self.chat_id,
-                sticker="CAACAgQAAxkBAAFQHzNqZV7ukQpLInqWTkkjXH1OFuJjRgAC9xkAAs-nMFMajFNG7THbSj0E"
+                sticker="CAACAgQAAxkBAAFQIPRqZX1vfKzcJTDOKhYm6L84PiHTPAACnB4AAnBPKVNG_ENzw04GOz0E"
             )
             logger.info("Logo sticker sent successfully.")
             return True
